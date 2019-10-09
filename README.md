@@ -1,7 +1,7 @@
 # DataPipelines_Earnings_Calls_Transcripts
      
-   - [ ] Web Scraping and storing csv
-   - [ ] Mapping data (tuples/key-value pairs) from raw csv
+   - [x] Web Scraping and storing csv
+   - [x] Mapping data (tuples - Introduction mappings, Q & A mappings, Conclusion mappings) from raw csv
    - [ ] Data Model
    - [ ] Data Storage
    - [ ] Sentiment API's module 
