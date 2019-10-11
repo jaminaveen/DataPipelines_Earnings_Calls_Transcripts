@@ -1,16 +1,16 @@
+import pandas as pd
 from pymongo import MongoClient, ReturnDocument
 from bs4 import BeautifulSoup
 import logging
-import os, sys
-import pandas as pd
+import os
 import json
 import Scraper
 import TranscriptProcessor
 
-
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
+
 
 def connect_to_db(database='Datapipelines'):
     client = MongoClient('localhost')
@@ -42,6 +42,7 @@ def get_archived_links(db, coll_name="raw"):
     """
     coll = db[coll_name]
     links = coll.distinct("link")
+    logger.info(f'set of archived links: {set(links)}')
     return set(links)
 
 
@@ -130,9 +131,10 @@ def process_raw_html(docs):
 
         del para_id
         isProcessed_ls.append(True)
-        logger.info(f'num of paragraphs in {raw_object_id}: {len(new_docs)}')
+        logger.info(f'{len(new_docs)} paragraphs in {raw_object_id}:')
 
     return new_docs, raw_object_ids, isProcessed_ls
+
 
 def process_raw(db, coll_name="processed"):
     docs = get_unprocessed_raw(db)
@@ -143,12 +145,15 @@ def process_raw(db, coll_name="processed"):
     except TypeError as e:
         logger.error(e)
         raise
-    update_is_processed(db, raw_object_ids)
+    update_is_processed(db, raw_object_ids, isProcessed_ls)
+    logger.info('Raw Documents processed!')
+
 
 def update_is_processed(db, raw_object_ids, isProcessed_ls, coll_name="raw"):
     for i in range(len(raw_object_ids)):
         return_doc = db[coll_name].find_one_and_update({"_id":raw_object_ids[i]},
                                           {'$set':{"isProcessed":isProcessed_ls[i]}})
+
 
 def main():
     db = connect_to_db()
@@ -158,8 +163,7 @@ def main():
         dow_30_companies = Scraper.dow_30_companies_func()
         insert_companies(db, dow_30_companies)
 
-    shiqi_cookie = 'machine_cookie=7952404426213; _gcl_au=1.1.1852272509.1569899012; _ga=GA1.2.1953747303.1569899012; _pxvid=0b7e782c-e3f8-11e9-b462-0242ac12000d; _fbp=fb.1.1569899012051.886186956; __adroll_fpc=aae1eb2e906a50f3949b56c1d8d42366-s2-1569899012247; h_px=1; __gads=ID=d63a506c6419e1b6:T=1569899012:S=ALNI_Ma0SgjcuKl1JA1c7RW99nLBYW7VRw; _gcl_aw=GCL.1570401017.Cj0KCQjwz8bsBRC6ARIsAEyNnvpAH7BQxZHxIKHWYLIWMAxz1p-SAGiDnoSVERLTrVsJIhr3fxTIqSsaApoAEALw_wcB; _gac_UA-142576245-1=1.1570401017.Cj0KCQjwz8bsBRC6ARIsAEyNnvpAH7BQxZHxIKHWYLIWMAxz1p-SAGiDnoSVERLTrVsJIhr3fxTIqSsaApoAEALw_wcB; _gid=GA1.2.1752854065.1570401017; __aaxsc=0; _pxff_tm=1; user_id=50729313; user_nick=shiqi; user_devices=; u_voc=; marketplace_author_slugs=; user_cookie_key=0; has_paid_subscription=false; user_perm=; sapu=101; user_remember_token=942f39e40b9d0a7ae094f54356c5178db00607bf; free_article=0; url_source_before_register=https%3A%2F%2Fseekingalpha.com%2Fsubscriptions; regsteps=vocation%2Cnewsletters%2Cstocks; _dc_gtm_UA-142576245-1=1; _gat_UA-142576245-1=1; portfolio_sort_type=a_z; __ar_v4=2EEQPRZIBZB7VIPPEX2IGK%3A20191005%3A1%7CULCHBRH4ZZGFXDWGQTC6RG%3A20190931%3A7%7CRFXAEISDJFDZDINVACZG6X%3A20190931%3A15%7CHWYEUMZG3RCB3IJESAMRSO%3A20190931%3A15%7CRQ5QC664UFDO7B7WUQLCWR%3A20190931%3A5%7CDZPINTYKVVC37LE5MJWGEE%3A20191005%3A1%7CF6X65CJ4K5E43AFRH5CGQD%3A20191005%3A1; gk_user_access=1**1570401330; gk_user_access_sign=ab3e4c0a5e8bfeae794ee871e69d658ad6543138; _igt=63111f8a-2cc0-4c8e-ef39-30312ad92a9f; _ig=23c932c9-df53-4b37-92ae-a42d6a8fd7e0; _hjid=1c813c65-9363-4ac1-bebb-f9ec98b3612b; _hjIncludedInSample=1; _px2=eyJ1IjoiOWFlMzZjMzAtZTg4OS0xMWU5LWIyZDYtZDE1MjkzZmI2ZTdiIiwidiI6IjBiN2U3ODJjLWUzZjgtMTFlOS1iNDYyLTAyNDJhYzEyMDAwZCIsInQiOjE1NzA0MDE4MzM0NTYsImgiOiIwYWY1MmNmMjMxMDVjODRiNGYyYmY3MWZhNWNiMTAxYzYwYzQ2MDVlOTQ0ZTI0MTExZDdhNTZjYmNiN2MyNTFlIn0=; _px=2aTrZ4YsWDPHKEWd8SkGSknh+MguaFO5v08Zp5FpuXihOKSBfCNW1kqz0Sh6TeY6yCxZB569T9wcqASHHLqO8w==:1000:ktdy5OvwfDY+9o/aY+fpibJo69IGspZ0rUiGyjqHr6mPvPrMzOeSncOiyE2DwR0n6XM9iFjSH45EQdDEtT7C7jywMISr/wig/QhIjCSIfjb6oN8OD5BSZIdDe9iOqI3pTIMDjAFBA8pN1OG2YClj7veSzw0gcFqQibMkTSUhXrlSWu0rtsixXA5AzmhXTic/oiIgfjYO+ArCArHmirIjyWPoomfbnd9sT/fxhC6Yha6uzK5qIw10BhAAUXUQU8oKhYP/hs+r3ZnuGOoyHPjtmg==; _pxde=f28ee823697b2a8c811f655dd2d1091c8bd93e6933895256adebef386d4e4bd0:eyJ0aW1lc3RhbXAiOjE1NzA0MDEzMzM0NTYsImZfa2IiOjB9; aasd=11%7C1570401017239'
-
+    shiqi_cookie = 'cookie: machine_cookie=7952404426213; _gcl_au=1.1.1852272509.1569899012; _ga=GA1.2.1953747303.1569899012; _pxvid=0b7e782c-e3f8-11e9-b462-0242ac12000d; _fbp=fb.1.1569899012051.886186956; __adroll_fpc=aae1eb2e906a50f3949b56c1d8d42366-s2-1569899012247; h_px=1; __gads=ID=d63a506c6419e1b6:T=1569899012:S=ALNI_Ma0SgjcuKl1JA1c7RW99nLBYW7VRw; _gcl_aw=GCL.1570401017.Cj0KCQjwz8bsBRC6ARIsAEyNnvpAH7BQxZHxIKHWYLIWMAxz1p-SAGiDnoSVERLTrVsJIhr3fxTIqSsaApoAEALw_wcB; _gac_UA-142576245-1=1.1570401017.Cj0KCQjwz8bsBRC6ARIsAEyNnvpAH7BQxZHxIKHWYLIWMAxz1p-SAGiDnoSVERLTrVsJIhr3fxTIqSsaApoAEALw_wcB; user_id=50729313; user_nick=shiqi; user_devices=; u_voc=; marketplace_author_slugs=; user_cookie_key=0; has_paid_subscription=false; user_perm=; sapu=101; user_remember_token=942f39e40b9d0a7ae094f54356c5178db00607bf; portfolio_sort_type=a_z; _hjid=1c813c65-9363-4ac1-bebb-f9ec98b3612b; _1ci_7ag23o86kjasbfd=5b6c7540-e890-11e9-8007-cb2998eae932; _MXBj_SURpRlk=0ce5de70-1086-3f4a-ba0a-429de44ad3a3; __aaxsc=0; _gid=GA1.2.1549442766.1570833290; _dc_gtm_UA-142576245-1=1; _pxff_tm=1; _igt=08fc42bf-c536-497e-f95a-8ec91ecffe08; _hjIncludedInSample=1; _px2=eyJ1IjoiNjFkODRlYTAtZWM3Ny0xMWU5LWE2ODMtZGIwYTU0MmI4Njg2IiwidiI6IjBiN2U3ODJjLWUzZjgtMTFlOS1iNDYyLTAyNDJhYzEyMDAwZCIsInQiOjE1NzA4MzM4MTM2MDksImgiOiI2MjgyMTA1Yjk2MjdhYWIzMzUxZGZkZjVlM2QxYjY5NzAyOTZkYTM1MjIwYjhiMmI2MzczYjNmYTA0ZDFlY2VlIn0=; _px=+CVau3LnmQem7QrZHv9U5UG8Ya+r6W6lZ7x2I02TOVgZPYnR2goTHwo/QMrORwiieYXFZM2KTqqUf6K3mug58w==:1000:CsltfYdeoil3Q4QwyLKvvZzKPm/DJVObri0Q840tavpPrXGDoOAQ+zrpzD/gQElMBakOsNmqeDqqxfbGanULaVpGZA6G08ISq8QRs4wpmsJLGoW2H4QU9tbgt9+CZyrYXvdHra2qFt2E3ISUZA/No5L3RPSrXzdUxIZrwS26HX8CZyZ9gDtakHbPXJokhRp4/IgAAq+TtSAewqkqsIJSK9eGm20aI0qPMU0JwSXZMOHrNTa7yosM1Vck/Y/evftmdM2jWaqpYGPA4aemWp60fQ==; _pxde=0512cdd84b54addbd59f1d9c9d59d697b3113882e1761b7072d31a190fbf4592:eyJ0aW1lc3RhbXAiOjE1NzA4MzMzMTM2MDksImZfa2IiOjB9; aasd=4%7C1570833290384; gk_user_access=1**1570833316; gk_user_access_sign=dd2d06b806b1c37ed28d8a3021cea0ece5616abb; __ar_v4=F6X65CJ4K5E43AFRH5CGQD%3A20191005%3A5%7CDZPINTYKVVC37LE5MJWGEE%3A20191005%3A1%7CRQ5QC664UFDO7B7WUQLCWR%3A20190931%3A5%7CHWYEUMZG3RCB3IJESAMRSO%3A20190931%3A21%7CRFXAEISDJFDZDINVACZG6X%3A20190931%3A21%7CULCHBRH4ZZGFXDWGQTC6RG%3A20190931%3A9%7C2EEQPRZIBZB7VIPPEX2IGK%3A20191005%3A1; _ig=23c932c9-df53-4b37-92ae-a42d6a8fd7e0'
     # get new links based on the tracking company list
     links_df = get_company_links(db, shiqi_cookie)
 
@@ -168,25 +172,27 @@ def main():
 
     # scrape new articles
     raw_df = Scraper.data_companies(links_df, shiqi_cookie, link_set)
-    # TODO:need to add some conditional statement to decide if re-run
-    rerun_df = Scraper.rerun_companies(raw_df, shiqi_cookie)
+    # need to add some conditional statement to decide if re-run
+    # rerun_df = Scraper.rerun_companies(raw_df, shiqi_cookie)
 
     # insert raw
-    insert_raw_data(db, rerun_df, coll_name="raw")
+    insert_raw_data(db, raw_df, coll_name="raw")
 
     # process raw transcripts
     process_raw(db)
 
+
 def test():
-    print("hi")
-    # db = connect_to_db()
+
+    db = connect_to_db()
+
+    # df = pd.read_csv('data/raw_data/companies.csv',index_col='Unnamed: 0')
     #
-    # # df = pd.read_csv('data/raw_data/companies.csv',index_col='Unnamed: 0')
-    # #
-    # # insert_raw_data(db, df, coll_name="raw")
+    # insert_raw_data(db, df, coll_name="raw")
     #
-    # process_raw(db)
+    process_raw(db)
+
 
 if __name__ == "__main__":
-    # test()
-    main()
+    test()
+    # main()

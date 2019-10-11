@@ -3,7 +3,6 @@ import pandas as pd
 import re
 import requests
 import time
-import numpy as np
 
 
 def dow_30_companies_func():
@@ -53,7 +52,7 @@ def ear_call_trans(i, cookies):
 
 def get_links(doq_30_df, cookies):
     """
-
+    !!DEPRECATED!!
     :param doq_30_df:
     :param cookies:
     :return:
@@ -83,7 +82,7 @@ def get_links_2(company_list, cookies):
 
 def get_each_link(link, cookies):
     """
-
+    issue: find_all()returns objects, we want strings
     :param self:
     :param link:
     :param cookies:
@@ -98,7 +97,7 @@ def get_each_link(link, cookies):
     data = response.text
     soup = BeautifulSoup(data, 'lxml')
     para = soup.find_all('p')
-    return para
+    return str(para)
 
 
 def get_qtr_year(link):
