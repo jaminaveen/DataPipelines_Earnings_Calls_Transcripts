@@ -7,3 +7,8 @@
    - [ ] Sentiment API's module 
    - [ ] Pre-processing
    - [ ] Predictions and Analysis
+
+
+### Documentation Link (Google Doc):
+
+https://docs.google.com/document/d/1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6CV0yMsOO_qc/edit?usp=sharing
