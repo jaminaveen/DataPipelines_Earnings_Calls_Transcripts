@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, ReturnDocument
 from bs4 import BeautifulSoup
 import logging
 import os, sys
@@ -7,6 +7,10 @@ import json
 import Scraper
 import TranscriptProcessor
 
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
 
 def connect_to_db(database='Datapipelines'):
     client = MongoClient('localhost')
@@ -69,21 +73,82 @@ def insert_raw_data(db, df, coll_name="raw"):
 
 def get_unprocessed_raw(db, coll_name="raw"):
     coll = db[coll_name]
-    cursor = coll.find({"isProcessed": False}, {"isProcessed": 0, "link": 0}).limit(5)
+    cursor = coll.find({"isProcessed": False}, {"isProcessed": 0, "link": 0})
     docs = [doc for doc in cursor]
     return docs
 
 
 def process_raw_html(docs):
-    list_all = []
+    raw_object_ids = []
+    new_docs = []
+    isProcessed_ls = []
     for doc in docs:
-        soup = BeautifulSoup(doc['text'], 'html.parser')
-        list_all.append(TranscriptProcessor.get_mappings(soup))
-        # TODO:do something here...
-        # .....
-    new_docs = {}  # dictionary
-    return new_docs
+        raw_object_id = doc.pop('_id')
+        raw_object_ids.append(raw_object_id)
 
+        html_text = doc.pop('text', None)
+        soup = BeautifulSoup(html_text, 'html.parser')
+        try:
+            doc_processed_list = TranscriptProcessor.get_mappings(soup)
+        except Exception:
+            logger.error(f"TranscriptProcessor has met an error, processing {raw_object_id} has failed!")
+            isProcessed_ls.append(False)
+            continue
+
+        intro_ls = doc_processed_list[0]
+        qa_ls = doc_processed_list[1]
+        conclu_ls = doc_processed_list[2]
+
+        para_id = 1 # initialize paragraph id
+        for intro in intro_ls:
+            doc['para_id'] = para_id
+            doc['para_tpye'] = 'intro'
+            doc['speaker'] = intro[0]
+            doc['text'] = intro[1]
+            para_id += 1
+            new_docs.append(doc.copy())
+            logger.debug(str(doc))
+
+        for qa in qa_ls:
+            doc['para_id'] = para_id
+            doc['para_tpye'] = 'qa'
+            doc['Q_A'] = qa[1]
+            doc['speaker'] = qa[0]
+            doc['text'] = qa[2]
+            para_id += 1
+            new_docs.append(doc.copy())
+            logger.debug(str(doc))
+
+        for conclu in conclu_ls:
+            doc['para_id'] = para_id
+            doc['para_tpye'] = 'conclu'
+            doc['speaker'] = conclu[0]
+            doc['text'] = conclu[1]
+            para_id += 1
+            new_docs.append(doc.copy())
+            logger.debug(str(doc))
+
+        del para_id
+        isProcessed_ls.append(True)
+        logger.info(f'num of paragraphs in {raw_object_id}: {len(new_docs)}')
+
+    return new_docs, raw_object_ids, isProcessed_ls
+
+def process_raw(db, coll_name="processed"):
+    docs = get_unprocessed_raw(db)
+    new_docs, raw_object_ids, isProcessed_ls = process_raw_html(docs)
+    logger.info(f'length of returned new_docs: {len(new_docs)}')
+    try:
+        db[coll_name].insert_many(new_docs)
+    except TypeError as e:
+        logger.error(e)
+        raise
+    update_is_processed(db, raw_object_ids)
+
+def update_is_processed(db, raw_object_ids, isProcessed_ls, coll_name="raw"):
+    for i in range(len(raw_object_ids)):
+        return_doc = db[coll_name].find_one_and_update({"_id":raw_object_ids[i]},
+                                          {'$set':{"isProcessed":isProcessed_ls[i]}})
 
 def main():
     db = connect_to_db()
@@ -109,81 +174,19 @@ def main():
     # insert raw
     insert_raw_data(db, rerun_df, coll_name="raw")
 
-    # dow_30_companies = Scraper.data_companies(dow_30_companies, cookies)
-    # # cookies = input("Enter your cookies for the rerun ")
-    # dow_30_companies.to_csv('companies.csv')
-    # dow_30_companies = Scraper.rerun_companies(dow_30_companies, cookies)
-    # dow_30_companies.to_csv('companies.csv')
-
+    # process raw transcripts
+    process_raw(db)
 
 def test():
-    db = connect_to_db()
-
-    # df = pd.read_csv('data/raw_data/companies.csv',index_col='Unnamed: 0')
+    print("hi")
+    # db = connect_to_db()
     #
-    # insert_raw_data(db, df, coll_name="raw")
-
-    def get_unprocessed_raw_t(db, coll_name="raw"):
-        coll = db[coll_name]
-        cursor = coll.find({"isProcessed": False}, {"isProcessed": 0, "link": 0}).limit(2)
-        docs = [doc for doc in cursor]
-        return docs
-
-    def process_raw_html_t(docs):
-        raw_object_ids = []
-        new_docs = []
-        for doc in docs:
-            raw_object_ids.append(doc.pop('_id'))
-
-            html_text = doc.pop('text', None)
-            soup = BeautifulSoup(html_text, 'html.parser')
-            doc_processed_list = TranscriptProcessor.get_mappings(soup)
-
-            intro_ls = doc_processed_list[0]
-            qa_ls = doc_processed_list[1]
-            conclu_ls = doc_processed_list[2]
-
-            para_id = 1 # initialize paragraph id
-            for intro in intro_ls:
-                doc['para_id'] = para_id
-                doc['speaker'] = intro[0]
-                doc['text'] = intro[1]
-                doc['para_tpye'] = 'intro'
-                para_id += 1
-                new_docs.append(doc)
-
-            for qa in qa_ls:
-                doc['para_id'] = para_id
-                doc['speaker'] = qa[0]
-                doc['Q_A'] = qa[1]
-                doc['text'] = qa[2]
-                doc['para_tpye'] = 'qa'
-                para_id += 1
-                new_docs.append(doc)
-
-            for conclu in conclu_ls:
-                doc['para_id'] = para_id
-                doc['speaker'] = conclu[0]
-                doc['text'] = conclu[1]
-                doc['para_tpye'] = 'conclu'
-                para_id += 1
-                new_docs.append(doc)
-
-        return new_docs, raw_object_ids
-
-    docs = get_unprocessed_raw_t(db)
-    # print(docs)
-
-    new_docs, raw_object_ids = process_raw_html_t(docs)
-
-    print(new_docs)
-    coll_name = "processed"
-    db[coll_name].insert_many(new_docs)
-
-
-    print(raw_object_ids)
-
+    # # df = pd.read_csv('data/raw_data/companies.csv',index_col='Unnamed: 0')
+    # #
+    # # insert_raw_data(db, df, coll_name="raw")
+    #
+    # process_raw(db)
 
 if __name__ == "__main__":
-    test()
-    # main()
+    # test()
+    main()
