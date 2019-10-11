@@ -58,16 +58,16 @@ def get_mappings(soup):
                 q_and_a_over = True
                 break
         processed_conclusion_mappings.reverse()
-    except:
-        return ["encountered run time error while preprocessing"]
+    except Exception as e:
+        raise e
     
     return [processed_intro_mappings, processed_qa_mappings, processed_conclusion_mappings[1:]]
     
 
-if __name__== "__main__":
-    data =pd.read_csv("companies.csv",index_col=0)
-    list_all = []
-    for each in data.loc[:,['text']]:
-        soup = BeautifulSoup(each, 'html.parser')
-        list_all.append(get_mappings(soup))
+# if __name__== "__main__":
+#     data =pd.read_csv("companies.csv",index_col=0)
+#     list_all = []
+#     for each in data.loc[:,['text']]:
+#         soup = BeautifulSoup(each, 'html.parser')
+#         list_all.append(get_mappings(soup))
 
