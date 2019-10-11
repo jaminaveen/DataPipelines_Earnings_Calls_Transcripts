@@ -3,7 +3,7 @@
    - [x] Web Scraping and storing csv
    - [x] Mapping data (tuples - Introduction mappings, Q & A mappings, Conclusion mappings) from raw csv
    - [x] Data Model
-   - [ ] Data Storage
+   - [x] Data Storage
    - [ ] Sentiment API's module 
    - [ ] Pre-processing
    - [ ] Predictions and Analysis
