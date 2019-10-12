@@ -13,6 +13,10 @@
 
 https://docs.google.com/document/d/1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6CV0yMsOO_qc/edit?usp=sharing
 
+### Codelabs Presentation:
+
+https://codelabs-preview.appspot.com/?file_id=1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6CV0yMsOO_qc#0
+
 ### Data Model
 
 ![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/INFO7374%20Project1%20Pipeline.jpeg)
