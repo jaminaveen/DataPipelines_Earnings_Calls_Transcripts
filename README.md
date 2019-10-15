@@ -1,5 +1,13 @@
 # DataPipelines_Earnings_Calls_Transcripts
-     
+> INFO 7374 Product Grade Data Pipelines
+
+Shiqi Dai</br>
+Naveen Jami</br>
+Satwik Kashyap</br>
+Sindhu Raghavendra</br>
+Professor: Sri Krishnamurthy</br>
+
+### Progress
    - [x] Web Scraping and storing csv
    - [x] Mapping paragraphs from raw html data(tuples - Introduction mappings, Q & A mappings, Conclusion mappings)
    - [x] Data Model
@@ -10,6 +18,7 @@
 
 
 ### Project Documentation Link (Google Doc):
+> including MongoDB Installation Guide
 
 https://docs.google.com/document/d/1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6CV0yMsOO_qc/edit?usp=sharing
 
