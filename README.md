@@ -1,6 +1,6 @@
 # DataPipelines_Earnings_Calls_Transcripts
 > INFO 7374 Product Grade Data Pipelines
-
+![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/Notched%20N%20Motto_RB.png)
 Shiqi Dai</br>
 Naveen Jami</br>
 Satwik Kashyap</br>
