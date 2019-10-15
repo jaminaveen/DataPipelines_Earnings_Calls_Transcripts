@@ -17,6 +17,10 @@ https://docs.google.com/document/d/1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6CV0yMsOO_qc/
 
 https://codelabs-preview.appspot.com/?file_id=1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6CV0yMsOO_qc#0
 
-### Data Model
+### System Overview
 
 ![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/INFO7374%20Project1%20Pipeline.jpeg)
+
+
+### Data Module Sequential Diagram
+![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/Data_Module_Sequence_Diagram.png)
