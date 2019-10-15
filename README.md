@@ -15,11 +15,16 @@ Professor: Sri Krishnamurthy</br>
    - [x] Pre-processing
    - [ ] Sentiment API's module
    - [ ] Predictions and Analysis
-   - [x] [Steps to replicate application](setup_instructions)
 
+### Contents
+   - Project Documentation Link (Google Doc)
+   - Codelabs Presentation
+   - System Overview
+   - Data Module Sequential Diagram
+   - Steps to replicate the application
 
 ### Project Documentation Link (Google Doc):
-> including MongoDB Installation Guide
+> included MongoDB Installation Guide
 
 https://docs.google.com/document/d/1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6CV0yMsOO_qc/edit?usp=sharing
 
@@ -35,11 +40,8 @@ https://codelabs-preview.appspot.com/?file_id=1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6C
 ### Data Module Sequential Diagram
 ![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/Data_Module_Sequence_Diagram.png)
 
-<a name="setup_instructions">
-   
+ 
 ### Steps to replicate the application
-
-</a>
 
 1. [Set up Mongodb in the local system](https://docs.google.com/document/d/1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6CV0yMsOO_qc/edit#heading=h.ium335l8jusv)
 
