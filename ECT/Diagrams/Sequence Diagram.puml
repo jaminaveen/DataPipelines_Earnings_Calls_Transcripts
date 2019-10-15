@@ -1,0 +1,31 @@
+@startuml
+title Data Module Sequence Diagram
+
+
+==Meta Data Stage (Optional)==
+Main -> Scraper: update_company_list
+Main <-- Scraper: company_list
+Main -> MongoDB: insert_companies
+
+==Scraping Stage==
+Main -> Scraper: get_archived_links
+Main -> MongoDB: get_company_links
+Main <-- Scraper: link_set
+Main <-- MongoDB: links_df
+
+Main -> Scraper: Scrape data(Scraper.data_companies)
+Scraper -> Scraper: find new links and scrape
+Main <-- Scraper: raw_df
+Main -> Scraper: QA raw_df
+Scraper -> Scraper: triple check(is_raw_df_all_good)
+Main <-- Scraper:all_good_raw_df
+Main -> MongoDB:insert_raw_data
+
+==Processing Stage==
+Main -> MongoDB: get_unprocessed_raw
+Main <-- MongoDB: unprocessed documents
+Main -> TranscriptProcessor: process_raw_html
+Main <-- TranscriptProcessor: processed mappings
+Main -> MongoDB: insert processed mappings to DB
+Main -> MongoDB: update_is_processed
+@enduml
