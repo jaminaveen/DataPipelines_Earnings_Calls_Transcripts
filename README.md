@@ -15,6 +15,7 @@ Professor: Sri Krishnamurthy</br>
    - [x] Pre-processing
    - [ ] Sentiment API's module
    - [ ] Predictions and Analysis
+   - [x] [Steps to replicate application](setup_instructions)
 
 
 ### Project Documentation Link (Google Doc):
@@ -34,6 +35,31 @@ https://codelabs-preview.appspot.com/?file_id=1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6C
 ### Data Module Sequential Diagram
 ![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/Data_Module_Sequence_Diagram.png)
 
+<a name="setup_instructions">
+   
+### Steps to replicate the application
 
-### Python Project Dependencies
-[requirements.txt](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/ECT/requirements.txt)
+</a>
+
+1. [Set up Mongodb in the local system](https://docs.google.com/document/d/1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6CV0yMsOO_qc/edit#heading=h.ium335l8jusv)
+
+2. Install Python 3
+
+3. Clone this repository
+
+       git clone https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts.git
+
+4. Change working folder
+    
+       cd DataPipelines_Earnings_Calls_Transcripts/
+
+5. Install dependencies 
+   [requirements.txt](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/ECT/requirements.txt)
+       
+       run: pip install -r ECT/requirements.txt
+ 
+6. Run main.py to extract, preprocess, store transcripts data into MongoDB
+     
+       python ECT/main.py
+    
+    
