@@ -1,8 +1,16 @@
+import sys
+from tqdm import tqdm
+import numpy as np
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
 import requests
 import time
+
+import logging
+logger = logging.getLogger()
+
+import recursive_getsizeof
 
 
 def dow_30_companies_func():
@@ -24,8 +32,8 @@ def dow_30_companies_func():
         all_cols.append(cols)
     doq_30_df = pd.DataFrame(all_cols, columns=['Company', 'Exchange', 'Symbol', 'Industry', 'Date_Added', 'Notes'])
     doq_30_df.drop(doq_30_df.index[[0]], inplace=True)
-    doq_30_df['Symbol'] = doq_30_df['Symbol'].str.replace('NYSE:', u' ')
-    print('Dow 30 Comapnies have been scraped')
+    doq_30_df['Symbol'] = doq_30_df['Symbol'].str.replace(r'NYSE:\xa0', '')
+    logger.info('Dow 30 Comapnies have been scraped')
     return doq_30_df
 
 
@@ -41,7 +49,7 @@ def ear_call_trans(i, cookies):
         'cookie': cookies}
     temp_list = []
     url = 'https://seekingalpha.com/symbol/' + str(i).strip() + '/earnings/transcripts'
-    # print(url)
+    # logger.info(url)
     response = requests.get(url, headers=headers)
     data = response.text
     soup = BeautifulSoup(data, 'html.parser')
@@ -61,10 +69,11 @@ def get_links(doq_30_df, cookies):
     for i in doq_30_df['Symbol'].tolist():
         res = ear_call_trans(i, cookies)
         list_all.append(res)
+    logger.info(f'Got {len(list_all)} links!')
     df = pd.DataFrame(list_all).T
     df.columns = doq_30_df['Company'].tolist()[:]
     df = df.fillna('EMPTY')
-    print('Companies Earning calls links have been scraped')
+    logger.info('Companies Earning calls links have been scraped')
     return df
 
 
@@ -76,7 +85,7 @@ def get_links_2(company_list, cookies):
     df = pd.DataFrame(list_all).T
     df.columns = company_list[:]
     df = df.fillna('EMPTY')
-    print('Companies Earning calls links have been scraped')
+    logger.info('Companies Earning calls links have been scraped')
     return df
 
 
@@ -95,8 +104,10 @@ def get_each_link(link, cookies):
         'cookie': cookies}
     response = requests.get(link, headers=headers)
     data = response.text
+    # logger.info(f'size of data: {sys.getsizeof(data)}')
     soup = BeautifulSoup(data, 'lxml')
     para = soup.find_all('p')
+    # logger.info(f'total size of paras: {recursive_getsizeof.total_size(para,verbose=False)}')
     return str(para)
 
 
@@ -122,7 +133,7 @@ def data_companies(df, cookies, link_set):
     :return:
     """
     list_a = []
-    for col in df.columns:
+    for col in tqdm(df.columns, desc='Scraping progress'):
         values = df[col].tolist()
         values[:] = [x for x in values if 'EMPTY' not in x]
         for link in values:
@@ -134,8 +145,22 @@ def data_companies(df, cookies, link_set):
                 list_a.append([col, link, qtr, year, paragraphs])
                 time.sleep(5)
     df_store = pd.DataFrame(list_a, columns=['company', 'link', 'qtr', 'year', 'text'])
-    print('Companies Earning calls text have been scraped')
+    logger.info('Companies Earning calls text have been scraped')
     return df_store
+
+
+def is_raw_df_all_good(df):
+    """
+    This function returns True, if the input dataframe which contains all raw scrapped data is all good.
+    Otherwise returns False for later calling "rerun_companies()"
+    :param df:
+    :return:
+    """
+    pattern = r'[^.]*please\ enable\ Javascript\ and\ cookies\ in\ your\ browser'
+    if np.any(df['text'].str.match(pattern)):
+        return False
+    else:
+        return True
 
 
 def rerun_companies(df, cookies):
@@ -146,23 +171,27 @@ def rerun_companies(df, cookies):
     :param cookies:
     :return:
     """
-    list_a = []
     pattern = r'[^.]*please\ enable\ Javascript\ and\ cookies\ in\ your\ browser'
     rerun_list = df[df['text'].str.match(pattern)]['link'].tolist()
+
     rerun_company_list = df[df['text'].str.match(pattern)]['company'].tolist()
+
+    list_a = []
     for link in rerun_list:
-        print(link)
+        logger.info(f'now re-scrapring link:{link}')
         qtr_year = get_qtr_year(link)
         qtr = qtr_year[0]
         year = qtr_year[1]
         paragraphs = get_each_link(link, cookies)
         list_a.append([link, qtr, year, paragraphs])
         time.sleep(5)
+
+    # construct a new dataframe to return
     df_temp = pd.DataFrame(list_a, columns=['link', 'qtr', 'year', 'text'])
     df_temp['company'] = rerun_company_list
     df = df[~df['link'].isin(rerun_list)]
     df.append(df_temp)
-    rerun_list = df[df['text'].str.match(pattern)]['link'].tolist()
-    df = df[~df['link'].isin(rerun_list)]
-    print('Failed to scrape companies have been scraped again')
+    # rerun_list = df[df['text'].str.match(pattern)]['link'].tolist()
+    # df = df[~df['link'].isin(rerun_list)]
+    # logger.info('Failed to scrape companies have been scraped again')
     return df

@@ -1,12 +1,12 @@
 import pandas as pd
 from pymongo import MongoClient, ReturnDocument
 from bs4 import BeautifulSoup
-import logging
 import os
 import json
 import Scraper
 import TranscriptProcessor
 
+import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
@@ -46,9 +46,10 @@ def get_archived_links(db, coll_name="raw"):
     return set(links)
 
 
-def get_company_list(db, coll_name="companies"):
+def get_company_symbol_list(db, coll_name="companies"):
     coll = db[coll_name]
-    company_list = coll.distinct("Company")
+    company_list = coll.distinct("Symbol")
+    logger.info(f'Get {len(company_list)} companies from the collection')
     return company_list
 
 
@@ -59,7 +60,7 @@ def get_company_links(db, cookies):
     :param cookies:
     :return:
     """
-    company_list = get_company_list(db)
+    company_list = get_company_symbol_list(db)
     links_df = Scraper.get_links_2(company_list, cookies)
     return links_df
 
@@ -84,6 +85,7 @@ def process_raw_html(docs):
     new_docs = []
     isProcessed_ls = []
     for doc in docs:
+        last_len = len(new_docs)
         raw_object_id = doc.pop('_id')
         raw_object_ids.append(raw_object_id)
 
@@ -131,7 +133,7 @@ def process_raw_html(docs):
 
         del para_id
         isProcessed_ls.append(True)
-        logger.info(f'{len(new_docs)} paragraphs in {raw_object_id}:')
+        logger.info(f'{len(new_docs) - last_len} paragraphs in {raw_object_id}:')
 
     return new_docs, raw_object_ids, isProcessed_ls
 
@@ -158,22 +160,29 @@ def update_is_processed(db, raw_object_ids, isProcessed_ls, coll_name="raw"):
 def main():
     db = connect_to_db()
 
-    update_company_list = False
+    update_company_list = True
     if update_company_list:
         dow_30_companies = Scraper.dow_30_companies_func()
         insert_companies(db, dow_30_companies)
 
-    shiqi_cookie = 'cookie: machine_cookie=7952404426213; _gcl_au=1.1.1852272509.1569899012; _ga=GA1.2.1953747303.1569899012; _pxvid=0b7e782c-e3f8-11e9-b462-0242ac12000d; _fbp=fb.1.1569899012051.886186956; __adroll_fpc=aae1eb2e906a50f3949b56c1d8d42366-s2-1569899012247; h_px=1; __gads=ID=d63a506c6419e1b6:T=1569899012:S=ALNI_Ma0SgjcuKl1JA1c7RW99nLBYW7VRw; _gcl_aw=GCL.1570401017.Cj0KCQjwz8bsBRC6ARIsAEyNnvpAH7BQxZHxIKHWYLIWMAxz1p-SAGiDnoSVERLTrVsJIhr3fxTIqSsaApoAEALw_wcB; _gac_UA-142576245-1=1.1570401017.Cj0KCQjwz8bsBRC6ARIsAEyNnvpAH7BQxZHxIKHWYLIWMAxz1p-SAGiDnoSVERLTrVsJIhr3fxTIqSsaApoAEALw_wcB; user_id=50729313; user_nick=shiqi; user_devices=; u_voc=; marketplace_author_slugs=; user_cookie_key=0; has_paid_subscription=false; user_perm=; sapu=101; user_remember_token=942f39e40b9d0a7ae094f54356c5178db00607bf; portfolio_sort_type=a_z; _hjid=1c813c65-9363-4ac1-bebb-f9ec98b3612b; _1ci_7ag23o86kjasbfd=5b6c7540-e890-11e9-8007-cb2998eae932; _MXBj_SURpRlk=0ce5de70-1086-3f4a-ba0a-429de44ad3a3; __aaxsc=0; _gid=GA1.2.1549442766.1570833290; _dc_gtm_UA-142576245-1=1; _pxff_tm=1; _igt=08fc42bf-c536-497e-f95a-8ec91ecffe08; _hjIncludedInSample=1; _px2=eyJ1IjoiNjFkODRlYTAtZWM3Ny0xMWU5LWE2ODMtZGIwYTU0MmI4Njg2IiwidiI6IjBiN2U3ODJjLWUzZjgtMTFlOS1iNDYyLTAyNDJhYzEyMDAwZCIsInQiOjE1NzA4MzM4MTM2MDksImgiOiI2MjgyMTA1Yjk2MjdhYWIzMzUxZGZkZjVlM2QxYjY5NzAyOTZkYTM1MjIwYjhiMmI2MzczYjNmYTA0ZDFlY2VlIn0=; _px=+CVau3LnmQem7QrZHv9U5UG8Ya+r6W6lZ7x2I02TOVgZPYnR2goTHwo/QMrORwiieYXFZM2KTqqUf6K3mug58w==:1000:CsltfYdeoil3Q4QwyLKvvZzKPm/DJVObri0Q840tavpPrXGDoOAQ+zrpzD/gQElMBakOsNmqeDqqxfbGanULaVpGZA6G08ISq8QRs4wpmsJLGoW2H4QU9tbgt9+CZyrYXvdHra2qFt2E3ISUZA/No5L3RPSrXzdUxIZrwS26HX8CZyZ9gDtakHbPXJokhRp4/IgAAq+TtSAewqkqsIJSK9eGm20aI0qPMU0JwSXZMOHrNTa7yosM1Vck/Y/evftmdM2jWaqpYGPA4aemWp60fQ==; _pxde=0512cdd84b54addbd59f1d9c9d59d697b3113882e1761b7072d31a190fbf4592:eyJ0aW1lc3RhbXAiOjE1NzA4MzMzMTM2MDksImZfa2IiOjB9; aasd=4%7C1570833290384; gk_user_access=1**1570833316; gk_user_access_sign=dd2d06b806b1c37ed28d8a3021cea0ece5616abb; __ar_v4=F6X65CJ4K5E43AFRH5CGQD%3A20191005%3A5%7CDZPINTYKVVC37LE5MJWGEE%3A20191005%3A1%7CRQ5QC664UFDO7B7WUQLCWR%3A20190931%3A5%7CHWYEUMZG3RCB3IJESAMRSO%3A20190931%3A21%7CRFXAEISDJFDZDINVACZG6X%3A20190931%3A21%7CULCHBRH4ZZGFXDWGQTC6RG%3A20190931%3A9%7C2EEQPRZIBZB7VIPPEX2IGK%3A20191005%3A1; _ig=23c932c9-df53-4b37-92ae-a42d6a8fd7e0'
+    with open('cookies.txt','r') as f:
+        cookie = f.readline()
+        logger.info(f'Using cookie: {cookie}')
     # get new links based on the tracking company list
-    links_df = get_company_links(db, shiqi_cookie)
+    links_df = get_company_links(db, cookie)
 
     # get archived links
     link_set = get_archived_links(db)
 
-    # scrape new articles
-    raw_df = Scraper.data_companies(links_df, shiqi_cookie, link_set)
-    # need to add some conditional statement to decide if re-run
-    # rerun_df = Scraper.rerun_companies(raw_df, shiqi_cookie)
+    # scrape new articleconditional statement to decide if re-run
+    #     # rerun_df = Scraper.rerun_companies(raw_df, cookie)s
+    raw_df = Scraper.data_companies(links_df, cookie, link_set)
+
+    count = 0
+    while (not Scraper.is_raw_df_all_good(raw_df)) and count <= 3:
+        raw_df = Scraper.rerun_companies(raw_df, cookie)
+        count += 1
+        logger.info(f'rerun count: {count}')
 
     # insert raw
     insert_raw_data(db, raw_df, coll_name="raw")
@@ -194,5 +203,5 @@ def test():
 
 
 if __name__ == "__main__":
-    test()
-    # main()
+    # test()
+    main()

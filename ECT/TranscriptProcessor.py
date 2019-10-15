@@ -1,8 +1,11 @@
 
-from bs4 import BeautifulSoup
-
 
 def get_mappings(soup):
+    """
+
+    :param soup:
+    :return:
+    """
     mappings = []
     heading_on = False
     all_text = soup.find_all('p')
@@ -48,7 +51,6 @@ def get_mappings(soup):
                 processed_qa_mappings.append((mappings[each][0],mappings[each][1],mappings[each+1][1]))
                 continue
         processed_conclusion_mappings = []
-        q_and_a_start = False
         q_and_a_over =  False
         for each in reversed(range(len(mappings))):
             if len(mappings[each])==2 and not q_and_a_over:
