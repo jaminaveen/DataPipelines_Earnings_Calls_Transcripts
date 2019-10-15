@@ -8,16 +8,18 @@ import requests
 import time
 
 import logging
+
 logger = logging.getLogger()
 
 import recursive_getsizeof
+
 
 # getiing the list of companies in DOW_30 from wikipedia
 def dow_30_companies_func():
     """
 
     :return:
-    """ 
+    """
     url = 'https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average'
     response = requests.get(url)
     data = response.text
@@ -35,10 +37,10 @@ def dow_30_companies_func():
     logger.info('Dow 30 Comapnies have been scraped')
     return doq_30_df
 
-# Getting the links of the DOW_30 ompanies
+
 def ear_call_trans(i, cookies):
     """
-
+    Getting the links of the DOW_30 ompanies
     :param i:
     :param cookies:
     :return:
@@ -56,9 +58,10 @@ def ear_call_trans(i, cookies):
         temp_list.append('https://seekingalpha.com' + a['href'])
     return temp_list
 
-# getting links for earning calls trnascripts for each company
+
 def get_links(doq_30_df, cookies):
     """
+    getting links for earning calls trnascripts for each company
     !!DEPRECATED!!
     :param doq_30_df:
     :param cookies:
@@ -75,8 +78,15 @@ def get_links(doq_30_df, cookies):
     logger.info('Companies Earning calls links have been scraped')
     return df
 
-# getting links for earning calls trnascripts for each company
+
+
 def get_links_2(company_list, cookies):
+    """
+    getting links for earning calls trnascripts for each company
+    :param company_list:
+    :param cookies:
+    :return:
+    """
     list_all = []
     for i in company_list:
         res = ear_call_trans(i, cookies)
@@ -90,14 +100,12 @@ def get_links_2(company_list, cookies):
 
 def get_each_link(link, cookies):
     """
-    issue: find_all()returns objects, we want strings
+    Scarping the URL of each company to get the speaker and the paragraph
     :param self:
     :param link:
     :param cookies:
     :return:
     """
-    # Scarping the URL of each company to get the speaker and the paragraph
-    str_para = ''
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36',
         'cookie': cookies}
@@ -109,10 +117,10 @@ def get_each_link(link, cookies):
     # logger.info(f'total size of paras: {recursive_getsizeof.total_size(para,verbose=False)}')
     return str(para)
 
-# Getting the quarter and year from the link
+
 def get_qtr_year(link):
     """
-
+    Getting the quarter and year from the link
     :param self:
     :param link:
     :return:
@@ -122,10 +130,10 @@ def get_qtr_year(link):
     qtr_year.append(link[-37:-33])
     return qtr_year
 
-# getting the data with HTML tags from each link for the comapanies
+
 def data_companies(df, cookies, link_set):
     """
-
+    getting the data with HTML tags from each link for the comapanies
     :param self:
     :param df:
     :param cookies:
@@ -147,7 +155,7 @@ def data_companies(df, cookies, link_set):
     logger.info('Companies Earning calls text have been scraped')
     return df_store
 
-# function to re-scrape the links which have some errors while scraping
+
 def is_raw_df_all_good(df):
     """
     This function returns True, if the input dataframe which contains all raw scrapped data is all good.
@@ -161,10 +169,10 @@ def is_raw_df_all_good(df):
     else:
         return True
 
-# re-scraping the links which have some errors while scraping
+
 def rerun_companies(df, cookies):
     """
-
+    re-scraping the links which have some errors while scraping
     :param self:
     :param df:
     :param cookies:

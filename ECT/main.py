@@ -13,21 +13,33 @@ logger.addHandler(logging.StreamHandler())
 
 
 def connect_to_db(database='Datapipelines'):
+    """
+    Connect to MongoDB database
+    :param database: name of the database
+    :return: db client
+    """
     client = MongoClient('localhost')
     db = client[database]
     return db
 
 
 def get_raw_csv_list(raw_csv_path='data/raw_data'):
+    """
+    !!!DEPRECATED!!!
+    List all csv files of raw data in the folder.
+    :param raw_csv_path: string, relative path
+    :return: list of file paths
+    """
     raw_csv_ls = os.listdir(raw_csv_path)
     return [os.path.join(raw_csv_path, fn) for fn in raw_csv_ls]
 
 
 def insert_companies(db, com_df, coll_name="companies"):
     """
-
-    :param db:
-    :param com_df:
+    insert the company list as meta data.
+    :param coll_name: String, collection name
+    :param db: db client
+    :param com_df: result dataframe of Scraper.dow_30_companies_func()
     """
     com_json_str = com_df.to_json(orient='records')
     com_json = json.loads(com_json_str)
@@ -37,8 +49,9 @@ def insert_companies(db, com_df, coll_name="companies"):
 
 def get_archived_links(db, coll_name="raw"):
     """
-
-    :param db:
+    from raw collection, get links we have and return as a set.
+    :param coll_name: String, collection name
+    :param db: db client
     """
     coll = db[coll_name]
     links = coll.distinct("link")
@@ -47,6 +60,12 @@ def get_archived_links(db, coll_name="raw"):
 
 
 def get_company_symbol_list(db, coll_name="companies"):
+    """
+    from "companies" collection, get values of "Symbol"
+    :param db: db client
+    :param coll_name: String, collection name
+    :return: list of String.
+    """
     coll = db[coll_name]
     company_list = coll.distinct("Symbol")
     logger.info(f'Get {len(company_list)} companies from the collection')
@@ -56,9 +75,9 @@ def get_company_symbol_list(db, coll_name="companies"):
 def get_company_links(db, cookies):
     """
     Get links based on the tracking company list
-    :param db:
-    :param cookies:
-    :return:
+    :param db: db client
+    :param cookies: String, http header cookie. Read from local txt file.
+    :return: dataframe, links_df from "Scraper.get_links_2(company_list, cookies)"
     """
     company_list = get_company_symbol_list(db)
     links_df = Scraper.get_links_2(company_list, cookies)
@@ -66,6 +85,12 @@ def get_company_links(db, cookies):
 
 
 def insert_raw_data(db, df, coll_name="raw"):
+    """
+    insert the result(dataframe) from data scraping into database
+    :param db: db client
+    :param df: dataframe, from "Scraper.data_companies(links_df, cookie, link_set)"
+    :param coll_name: String, collection name
+    """
     df['isProcessed'] = False
     df_json_str = df.to_json(orient='records')
     df_json = json.loads(df_json_str)
@@ -74,6 +99,12 @@ def insert_raw_data(db, df, coll_name="raw"):
 
 
 def get_unprocessed_raw(db, coll_name="raw"):
+    """
+    query the database to get unprocessed raw data documents(Mongo Document)
+    :param db: db client
+    :param coll_name: String, collection name
+    :return: List of Mongo Documents
+    """
     coll = db[coll_name]
     cursor = coll.find({"isProcessed": False}, {"isProcessed": 0, "link": 0})
     docs = [doc for doc in cursor]
@@ -81,6 +112,11 @@ def get_unprocessed_raw(db, coll_name="raw"):
 
 
 def process_raw_html(docs):
+    """
+    process on mongo documents, mapping raw html to different types of information fragments
+    :param docs: List of Mongo Documents
+    :return: list of new documents, list of raw_object_ids, list of booleans
+    """
     raw_object_ids = []
     new_docs = []
     isProcessed_ls = []
@@ -139,6 +175,11 @@ def process_raw_html(docs):
 
 
 def process_raw(db, coll_name="processed"):
+    """
+    procuders to process raw transcripts and insert to db after processing
+    :param db: db client
+    :param coll_name: String, collection name
+    """
     docs = get_unprocessed_raw(db)
     new_docs, raw_object_ids, isProcessed_ls = process_raw_html(docs)
     logger.info(f'length of returned new_docs: {len(new_docs)}')
@@ -152,6 +193,13 @@ def process_raw(db, coll_name="processed"):
 
 
 def update_is_processed(db, raw_object_ids, isProcessed_ls, coll_name="raw"):
+    """
+    update document status in "raw" collection to indicate if one document has been processed.
+    :param db: db client
+    :param raw_object_ids: list of raw_object_ids
+    :param isProcessed_ls: list of booleans
+    :param coll_name: String, collection name
+    """
     for i in range(len(raw_object_ids)):
         return_doc = db[coll_name].find_one_and_update({"_id":raw_object_ids[i]},
                                           {'$set':{"isProcessed":isProcessed_ls[i]}})
@@ -160,7 +208,7 @@ def update_is_processed(db, raw_object_ids, isProcessed_ls, coll_name="raw"):
 def main():
     db = connect_to_db()
 
-    update_company_list = True
+    update_company_list = False
     if update_company_list:
         dow_30_companies = Scraper.dow_30_companies_func()
         insert_companies(db, dow_30_companies)
@@ -174,12 +222,10 @@ def main():
     # get archived links
     link_set = get_archived_links(db)
 
-    # scrape new articleconditional statement to decide if re-run
-    #     # rerun_df = Scraper.rerun_companies(raw_df, cookie)s
     raw_df = Scraper.data_companies(links_df, cookie, link_set)
 
     count = 0
-    while (not Scraper.is_raw_df_all_good(raw_df)) and count <= 3:
+    while (not Scraper.is_raw_df_all_good(raw_df)) and count <= 3: # try no more than 3 times.
         raw_df = Scraper.rerun_companies(raw_df, cookie)
         count += 1
         logger.info(f'rerun count: {count}')
@@ -192,7 +238,6 @@ def main():
 
 
 def test():
-
     db = connect_to_db()
 
     # df = pd.read_csv('data/raw_data/companies.csv',index_col='Unnamed: 0')
