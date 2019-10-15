@@ -24,3 +24,7 @@ https://codelabs-preview.appspot.com/?file_id=1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6C
 
 ### Data Module Sequential Diagram
 ![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/Data_Module_Sequence_Diagram.png)
+
+
+### Python Project Dependencies
+![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/ECT/requirements.txt)
