@@ -208,7 +208,7 @@ def update_is_processed(db, raw_object_ids, isProcessed_ls, coll_name="raw"):
 def main():
     db = connect_to_db()
 
-    update_company_list = False
+    update_company_list = True
     if update_company_list:
         dow_30_companies = Scraper.dow_30_companies_func()
         insert_companies(db, dow_30_companies)
