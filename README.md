@@ -58,7 +58,7 @@ https://codelabs-preview.appspot.com/?file_id=1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6C
 5. Install dependencies 
    [requirements.txt](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/ECT/requirements.txt)
        
-       run: pip install -r ECT/requirements.txt
+       pip install -r ECT/requirements.txt
  
 6. Run main.py to extract, preprocess, store transcripts data into MongoDB
      
