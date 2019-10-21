@@ -23,7 +23,7 @@ def dow_30_companies_func():
     url = 'https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average'
     response = requests.get(url)
     data = response.text
-    soup = BeautifulSoup(data, 'lxml')
+    soup = BeautifulSoup(data, 'html.parser')
     table = soup.findChildren('table')[1]
     rows = table.find_all('tr')
     all_cols = []
@@ -112,7 +112,7 @@ def get_each_link(link, cookies):
     response = requests.get(link, headers=headers)
     data = response.text
     # logger.info(f'size of data: {sys.getsizeof(data)}')
-    soup = BeautifulSoup(data, 'lxml')
+    soup = BeautifulSoup(data, 'html.parser')
     para = soup.find_all('p')
     # logger.info(f'total size of paras: {recursive_getsizeof.total_size(para,verbose=False)}')
     return str(para)

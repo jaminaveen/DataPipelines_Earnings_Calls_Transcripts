@@ -1,0 +1,11 @@
+web:
+  build: .
+  command: python -u ./ECT/main.py
+  volumes:
+    - .:/app
+  links:
+    - db
+db:
+  image: mongo
+  ports:
+    - "27017:27017"

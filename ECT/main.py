@@ -18,8 +18,11 @@ def connect_to_db(database='Datapipelines'):
     :param database: name of the database
     :return: db client
     """
-    client = MongoClient('localhost')
+    #client = MongoClient('localhost')
+    client = MongoClient(os.environ['DB_PORT_27017_TCP_ADDR'],27017)
+    print(os.environ['DB_PORT_27017_TCP_ADDR'])
     db = client[database]
+    print("connected to db")
     return db
 
 
@@ -213,7 +216,9 @@ def main():
         dow_30_companies = Scraper.dow_30_companies_func()
         insert_companies(db, dow_30_companies)
 
-    with open('cookies.txt','r') as f:
+    print(os.getcwd())
+
+    with open('ECT/cookies.txt','r') as f:
         cookie = f.readline()
         logger.info(f'Using cookie: {cookie}')
     # get new links based on the tracking company list
