@@ -98,7 +98,10 @@ def insert_raw_data(db, df, coll_name="raw"):
     df_json_str = df.to_json(orient='records')
     df_json = json.loads(df_json_str)
     coll = db[coll_name]
-    coll.insert_many(df_json)  # can be changed to batch inserting.
+    try:
+        coll.insert_many(df_json)  # can be changed to batch inserting.
+    except TypeError:
+        print("Raw Database is up to date")
 
 
 def get_unprocessed_raw(db, coll_name="raw"):
@@ -189,8 +192,9 @@ def process_raw(db, coll_name="processed"):
     try:
         db[coll_name].insert_many(new_docs)
     except TypeError as e:
-        logger.error(e)
-        raise
+        #logger.error(e)
+        print('No unprocessed raw Documents available in Raw Collection!')
+        #raise
     update_is_processed(db, raw_object_ids, isProcessed_ls)
     logger.info('Raw Documents processed!')
 
