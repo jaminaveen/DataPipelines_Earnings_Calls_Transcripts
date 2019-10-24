@@ -21,7 +21,7 @@ Professor: Sri Krishnamurthy</br>
    - Codelabs Presentation
    - System Overview
    - Data Module Sequential Diagram
-   - docker-compose instructions to install MongoDB and other Python Dependenices
+   - Steps to run the application: docker-compose instructions using docker-compose.yml
 
 ### Project Documentation Link (Google Doc):
 > included MongoDB Installation Guide
@@ -40,7 +40,7 @@ https://codelabs-preview.appspot.com/?file_id=1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6C
 ### Data Module Sequential Diagram
 ![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/Data_Module_Sequence_Diagram.png)
 
-### docker-compose instructions to install MongoDB and other Python Dependenices
+### Steps to run the application: docker-compose instructions using docker-compose.yml
 
 1. Clone this repository
 
