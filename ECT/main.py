@@ -18,7 +18,7 @@ def connect_to_db(database='Datapipelines'):
     :param database: name of the database
     :return: db client
     """
-    #client = MongoClient('localhost')
+    # client = MongoClient('localhost')
     client = MongoClient(os.environ['DB_PORT_27017_TCP_ADDR'],27017)
     print(os.environ['DB_PORT_27017_TCP_ADDR'])
     db = client[database]
@@ -208,15 +208,27 @@ def update_is_processed(db, raw_object_ids, isProcessed_ls, coll_name="raw"):
                                           {'$set':{"isProcessed":isProcessed_ls[i]}})
 
 
+def companies_coll_exists(db):
+    """
+    check if the collection "companies" is there in MongoDB
+    :param db:
+    :return:
+    """
+    if 'companies' in db.collection_names(False):
+        return True
+
+    return False
+
+
 def main():
     db = connect_to_db()
 
-    update_company_list = True
-    if update_company_list:
+    if not companies_coll_exists(db):
+        logger.info("The 'companies' collection does not exist. Start scraping company list. ")
         dow_30_companies = Scraper.dow_30_companies_func()
         insert_companies(db, dow_30_companies)
 
-    print(os.getcwd())
+    logger.info('Current working directory: ' + os.getcwd())
 
     with open('ECT/cookies.txt','r') as f:
         cookie = f.readline()
