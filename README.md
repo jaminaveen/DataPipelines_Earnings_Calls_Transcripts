@@ -21,7 +21,7 @@ Professor: Sri Krishnamurthy</br>
    - Codelabs Presentation
    - System Overview
    - Data Module Sequential Diagram
-   - Steps to replicate the application
+   - docker-compose instructions to install MongoDB and other Python Dependenices
 
 ### Project Documentation Link (Google Doc):
 > included MongoDB Installation Guide
@@ -40,28 +40,40 @@ https://codelabs-preview.appspot.com/?file_id=1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6C
 ### Data Module Sequential Diagram
 ![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/Data_Module_Sequence_Diagram.png)
 
- 
-### Steps to replicate the application
+### docker-compose instructions to install MongoDB and other Python Dependenices
 
-1. [Set up Mongodb in the local system](https://docs.google.com/document/d/1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6CV0yMsOO_qc/edit#heading=h.ium335l8jusv)
-
-2. Install Python 3
-
-3. Clone this repository
+1. Clone this repository
 
        git clone https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts.git
 
-4. Change working folder
-    
-       cd DataPipelines_Earnings_Calls_Transcripts/
+2. Open Docker Quickstart Terminal
 
-5. Install dependencies 
-   [requirements.txt](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/ECT/requirements.txt)
+3. Change directory to this git clone folder
+
+       cd "<local path>/DataPipelines_Earnings_Calls_Transcripts"
+
+3. Docker Compose build (Only use for the first time)
+
+       docker-compose build
+
+4. Run the services and application (Note: If you are running it for the first time, Scraping will take about 30 min)
+    
+       docker-compose up
+
+5. Optional - To check data in MongoDB GUI, install either MongoDB Compass Community IDE or Robo3T IDE and use these connection settings
+
+       hostname - <docker-machine ip>
+       port - 27017
+    
+##### Two way to find the docker ip
+
+1. Use the command
        
-       pip install -r ECT/requirements.txt
+       docker-machine ip
  
-6. Run main.py to extract, preprocess, store transcripts data into MongoDB
-     
-       python ECT/main.py
+2. Also, we can find docker machine ip when we open the docker terminal at the beginning
+ 
+  ![](https://github.com/jaminaveen/DataPipelines_Earnings_Calls_Transcripts/blob/master/dockermachine_ip.PNG)
+       
     
     
