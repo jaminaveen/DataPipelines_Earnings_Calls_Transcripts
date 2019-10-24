@@ -135,7 +135,7 @@ def data_companies(df, cookies, link_set):
     """
     getting the data with HTML tags from each link for the comapanies
     :param self:
-    :param df:
+    :param df: dataframe of links organized by columns based on companies
     :param cookies:
     :return:
     """
