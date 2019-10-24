@@ -1,4 +1,4 @@
-web:
+app:
   build: .
   command: python -u ./ECT/main.py
   volumes:
