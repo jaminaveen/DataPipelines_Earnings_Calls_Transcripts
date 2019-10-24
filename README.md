@@ -52,7 +52,7 @@ https://codelabs-preview.appspot.com/?file_id=1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6C
 
        cd "<local path>/DataPipelines_Earnings_Calls_Transcripts"
 
-3. Docker Compose build (Only use for the first time)
+3. Docker Compose build (Use this when you run the application for the first time)
 
        docker-compose build
 
