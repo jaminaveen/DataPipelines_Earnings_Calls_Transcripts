@@ -65,7 +65,7 @@ https://codelabs-preview.appspot.com/?file_id=1rFcNPuP9XiATgN7kJyd_60TYVKW-msw6C
        hostname - <docker-machine ip>
        port - 27017
     
-##### Two way to find the docker ip
+### Two ways to find the docker ip
 
 1. Use the command
        
