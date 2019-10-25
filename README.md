@@ -13,6 +13,7 @@ Professor: Sri Krishnamurthy</br>
    - [x] Data Model
    - [x] Data Storage 
    - [x] Pre-processing
+   - [x] Dockerizing - Data Scraping and Data Preprocessing step
    - [ ] Sentiment API's module
    - [ ] Predictions and Analysis
 
